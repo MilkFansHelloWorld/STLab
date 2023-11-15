@@ -1,1 +1,8 @@
-
+.bloop
+.metals
+.vscode
+target
+project
+effpi_sandbox
+dist-newstyle
+HsScribble
