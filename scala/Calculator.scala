@@ -6,8 +6,7 @@ import effpi.channel.Channel
 import effpi.channel.{InChannel, OutChannel}
 import scala.concurrent.duration.Duration
 
-case class Int()
-case class Pair()
+case class Pair(x: Int, y: Int)
 case class Multiply(x : Pair)
 case class Quit()
 case class Result(x : Int)
@@ -55,7 +54,7 @@ def s0(x : Quit | Multiply | Sum, c1 : OutChannel[Result], c2 : OutChannel[Resul
   case y : Multiply => {
     println(s"-- S received Multiply")
     println(s"-- S sending Result on c2 ($c2)")
-    send(c2, new Result(new Int())) >> {
+    send(c2, new Result(y.x.x * y.x.y)) >> {
       println(s"-- S sent Result on c2 ($c2)")
       println("-- S recursing; t = RecT0")
       loop(RecT0)
@@ -64,7 +63,7 @@ def s0(x : Quit | Multiply | Sum, c1 : OutChannel[Result], c2 : OutChannel[Resul
   case y : Sum => {
     println(s"-- S received Sum")
     println(s"-- S sending Result on c1 ($c1)")
-    send(c1, new Result(new Int())) >> {
+    send(c1, new Result(y.x.x + y.x.y)) >> {
       println(s"-- S sent Result on c1 ($c1)")
       println("-- S recursing; t = RecT0")
       loop(RecT0)
@@ -75,7 +74,7 @@ def s0(x : Quit | Multiply | Sum, c1 : OutChannel[Result], c2 : OutChannel[Resul
 def cl(c0 : OutChannel[Quit | Multiply | Sum], c1 : InChannel[Result], c2 : InChannel[Result], c3 : InChannel[Terminate]) : Cl[c0.type, c1.type, c2.type, c3.type] = {
   rec(RecT0) {
     println("-- Cl entering recursion body; t = RecT0")
-    val x0 = 0
+    val x0 = 2
     if (x0 == 0) {
       send(c0, new Quit()) >> {
         println(s"-- Cl sent Quit on c0 ($c0)")
@@ -87,21 +86,23 @@ def cl(c0 : OutChannel[Quit | Multiply | Sum], c1 : InChannel[Result], c2 : InCh
         }
       }
     } else if (x0 == 1) {
-      send(c0, new Multiply(new Pair())) >> {
+      send(c0, new Multiply(new Pair(5, 2))) >> {
         println(s"-- Cl sent Multiply on c0 ($c0)")
         println(s"-- Cl expecting Result on c2 ($c2)")
         receive(c2) {(x1 : Result) => 
-          println(s"-- Cl received Result on c2 ($c2)")
+          val result = x1.x
+          println(s"-- Cl received Result $result on c2 ($c2)")
           println("-- Cl recursing; t = RecT0")
           loop(RecT0)
         }
       }
     } else {
-      send(c0, new Sum(new Pair())) >> {
+      send(c0, new Sum(new Pair(3, 4))) >> {
         println(s"-- Cl sent Sum on c0 ($c0)")
         println(s"-- Cl expecting Result on c1 ($c1)")
         receive(c1) {(x1 : Result) => 
-          println(s"-- Cl received Result on c1 ($c1)")
+          val result = x1.x
+          println(s"-- Cl received Result $result on c1 ($c1)")
           println("-- Cl recursing; t = RecT0")
           loop(RecT0)
         }
